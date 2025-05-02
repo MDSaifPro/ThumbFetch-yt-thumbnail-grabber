@@ -1,0 +1,718 @@
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Thumbnail Downloader</title>
+    <link rel="stylesheet" href="css/all.min.css">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%);
+            --secondary-gradient: linear-gradient(135deg, #2980B9 0%, #6DD5FA 100%);
+            --dark-color: #1a1a2e;
+            --light-color: #fff;
+            --success-color: #4CAF50;
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            --font-heading: 'Poppins', sans-serif;
+            --font-body: 'Inter', sans-serif;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background-color: var(--dark-color);
+            background-image: radial-gradient(circle at 15% 50%, rgba(255, 46, 99, 0.2) 0%, transparent 33%), 
+                              radial-gradient(circle at 85% 30%, rgba(0, 128, 255, 0.2) 0%, transparent 33%);
+            color: var(--light-color);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: "";
+            position: absolute;
+            width: 50vw;
+            height: 50vw;
+            background: var(--primary-gradient);
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.15;
+            top: -25vw;
+            left: -25vw;
+            z-index: -1;
+            animation: float 15s ease-in-out infinite;
+        }
+
+        body::after {
+            content: "";
+            position: absolute;
+            width: 40vw;
+            height: 40vw;
+            background: var(--secondary-gradient);
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.15;
+            bottom: -20vw;
+            right: -20vw;
+            z-index: -1;
+            animation: float 20s ease-in-out infinite reverse;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-30px) rotate(10deg); }
+            100% { transform: translateY(0) rotate(0deg); }
+        }
+
+        .container {
+            width: 90%;
+            max-width: 800px;
+            margin: 40px 0;
+            padding: 0;
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+        .header {
+            position: relative;
+            padding: 40px;
+            border-radius: 20px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            text-align: center;
+            overflow: hidden;
+            clip-path: polygon(0 0, 100% 0, 100% 85%, 85% 100%, 0 100%);
+        }
+
+        .header::before {
+            content: "";
+            position: absolute;
+            width: 150%;
+            height: 100px;
+            background: var(--primary-gradient);
+            top: -50px;
+            left: -25%;
+            transform: rotate(-5deg);
+            z-index: -1;
+            opacity: 0.4;
+        }
+
+        .header h1 {
+            font-family: var(--font-heading);
+            font-size: 3rem;
+            margin-bottom: 15px;
+            position: relative;
+            display: inline-block;
+            background-image: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1.1rem;
+            max-width: 80%;
+            margin: 0 auto 20px;
+            line-height: 1.6;
+        }
+
+        .input-container {
+            position: relative;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            border-radius: 20px;
+            padding: 40px;
+            transform: translateY(-20px);
+        }
+
+        .url-input {
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        .url-input i {
+            position: absolute;
+            top: 50%;
+            left: 20px;
+            transform: translateY(-50%);
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 1.2rem;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 16px 16px 16px 50px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--light-color);
+            font-size: 16px;
+            font-family: var(--font-body);
+            outline: none;
+        }
+
+        input[type="text"]::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        input[type="text"]:focus {
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+        }
+
+        .quality-options {
+            display: flex;
+            margin-bottom: 30px;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .quality-option {
+            padding: 12px 20px;
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .quality-option i {
+            font-size: 0.9rem;
+        }
+
+        .quality-option:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-3px);
+        }
+
+        .quality-option.active {
+            background-image: var(--secondary-gradient);
+            color: var(--light-color);
+            border: none;
+        }
+
+        .button-container {
+            text-align: center;
+        }
+
+        button {
+            padding: 16px 30px;
+            border-radius: 50px;
+            background-image: var(--primary-gradient);
+            color: var(--light-color);
+            border: none;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(255, 65, 108, 0.3);
+            position: relative;
+            overflow: hidden;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        button::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+        }
+
+        button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 25px rgba(255, 65, 108, 0.4);
+        }
+
+        button:hover::before {
+            left: 100%;
+        }
+
+        .thumbnail-container {
+            position: relative;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            border-radius: 20px;
+            padding: 40px;
+            overflow: hidden;
+            min-height: 200px;
+            transform: translateY(-40px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .thumbnail-container::before {
+            content: "";
+            position: absolute;
+            width: 150%;
+            height: 100px;
+            background: var(--secondary-gradient);
+            bottom: -50px;
+            right: -25%;
+            transform: rotate(-5deg);
+            z-index: -1;
+            opacity: 0.1;
+        }
+
+        .thumbnail {
+            width: 100%;
+            max-width: 600px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .thumbnail:hover {
+            transform: scale(1.02);
+        }
+
+        .download-link {
+            margin-top: 30px;
+            padding: 14px 25px;
+            border-radius: 50px;
+            background: var(--success-color);
+            color: var(--light-color);
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 8px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .download-link:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        .error-message {
+            color: #FF416C;
+            margin: 20px 0;
+            font-size: 0.9rem;
+            background: rgba(255, 65, 108, 0.1);
+            padding: 15px 20px;
+            border-radius: 10px;
+            border-left: 4px solid #FF416C;
+        }
+
+        .loader {
+            display: none;
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.1);
+            border-top: 5px solid #FF416C;
+            border-radius: 50%;
+            margin: 30px auto;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .mode-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .mode-toggle i {
+            font-size: 1.2rem;
+            color: var(--light-color);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: -20px;
+            padding: 20px;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .footer a {
+            color: #FF416C;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                width: 95%;
+                padding: 15px;
+                margin: 20px 0;
+                gap: 15px;
+            }
+
+            .header {
+                padding: 30px 20px;
+            }
+
+            .header h1 {
+                font-size: 2.2rem;
+            }
+
+            .header p {
+                font-size: 0.95rem;
+                max-width: 95%;
+            }
+
+            .input-container,
+            .thumbnail-container {
+                padding: 25px 20px;
+            }
+
+            button {
+                padding: 14px 25px;
+                font-size: 0.95rem;
+            }
+
+            .quality-option {
+                padding: 10px 15px;
+                font-size: 0.9rem;
+            }
+        }
+
+        .light-mode {
+            --dark-color: #f5f5f5;
+            --light-color: #1a1a2e;
+            --glass-bg: rgba(255, 255, 255, 0.8);
+            --glass-border: rgba(255, 255, 255, 0.5);
+        }
+
+        .light-mode input[type="text"],
+        .light-mode .quality-option {
+            background: rgba(0, 0, 0, 0.03);
+            border-color: rgba(0, 0, 0, 0.1);
+        }
+
+        .light-mode .quality-option:not(.active) {
+            color: rgba(0, 0, 0, 0.7);
+        }
+
+        .light-mode input[type="text"]::placeholder {
+            color: rgba(0, 0, 0, 0.4);
+        }
+
+        /* Animation for content loading */
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header, .input-container, .thumbnail-container {
+            opacity: 0;
+            animation: fadeUp 0.8s ease-out forwards;
+        }
+
+        .header {
+            animation-delay: 0.1s;
+        }
+
+        .input-container {
+            animation-delay: 0.3s;
+        }
+
+        .thumbnail-container {
+            animation-delay: 0.5s;
+        }
+    </style>
+</head>
+<body>
+    <div class="mode-toggle">
+        <i class="fas fa-sun"></i>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>YouTube Thumbnail Grabber</h1>
+            <p>Get high-quality thumbnails from any YouTube video with just a few clicks</p>
+        </div>
+
+        <div class="input-container">
+            <div class="url-input">
+                <i class="fab fa-youtube"></i>
+                <input type="text" id="urlInput" placeholder="Paste YouTube video URL here...">
+            </div>
+
+            <div class="quality-options">
+                <div class="quality-option active" data-quality="maxres">
+                    <i class="fas fa-crown"></i> HD Quality
+                </div>
+                <div class="quality-option" data-quality="sddefault">
+                    <i class="fas fa-photo-video"></i> Standard
+                </div>
+                <div class="quality-option" data-quality="mqdefault">
+                    <i class="fas fa-image"></i> Medium
+                </div>
+            </div>
+
+            <div class="button-container">
+                <button id="downloadBtn">
+                    <i class="fas fa-search"></i> Get Thumbnail
+                </button>
+            </div>
+        </div>
+
+        <div class="thumbnail-container">
+            <div class="loader" id="loader"></div>
+            <div id="error-message" class="error-message" style="display: none;"></div>
+            <img id="thumbnail" class="thumbnail" style="display: none;">
+            <a id="downloadLink" class="download-link" style="display: none;">
+                <i class="fas fa-download"></i> Download Thumbnail
+            </a>
+        </div>
+
+        <div class="footer">
+            Created with <i class="fas fa-heart" style="color: #FF416C;"></i> by <a href="#">ThumbnailGrabber</a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elements
+            const urlInput = document.getElementById('urlInput');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const thumbnail = document.getElementById('thumbnail');
+            const downloadLink = document.getElementById('downloadLink');
+            const errorMessage = document.getElementById('error-message');
+            const qualityOptions = document.querySelectorAll('.quality-option');
+            const loader = document.getElementById('loader');
+            const modeToggle = document.querySelector('.mode-toggle');
+            
+            // Variables
+            let selectedQuality = 'maxres';
+            
+            // Event for quality options
+            qualityOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    qualityOptions.forEach(opt => opt.classList.remove('active'));
+                    this.classList.add('active');
+                    selectedQuality = this.getAttribute('data-quality');
+                    
+                    // Update thumbnail if already loaded
+                    if (thumbnail.style.display !== 'none') {
+                        loadThumbnail();
+                    }
+                });
+            });
+            
+            // Event for download button
+            downloadBtn.addEventListener('click', function() {
+                loadThumbnail();
+            });
+            
+            // Event for download link
+            downloadLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                downloadThumbnail(this.href, this.download);
+            });
+            
+            // Event for mode toggle
+            modeToggle.addEventListener('click', function() {
+                document.body.classList.toggle('light-mode');
+                // Toggle icon
+                const icon = modeToggle.querySelector('i');
+                if (icon.classList.contains('fa-sun')) {
+                    icon.classList.remove('fa-sun');
+                    icon.classList.add('fa-moon');
+                } else {
+                    icon.classList.remove('fa-moon');
+                    icon.classList.add('fa-sun');
+                }
+            });
+            
+            // Enter key support
+            urlInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    loadThumbnail();
+                }
+            });
+            
+            // Load thumbnail function
+            function loadThumbnail() {
+                const url = urlInput.value.trim();
+                
+                // Reset UI
+                errorMessage.style.display = 'none';
+                thumbnail.style.display = 'none';
+                downloadLink.style.display = 'none';
+                loader.style.display = 'block';
+                
+                if (!url) {
+                    showError('Please enter a YouTube URL');
+                    return;
+                }
+                
+                // Extract video ID from URL
+                let videoId;
+                const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+                const match = url.match(youtubeRegex);
+                
+                if (match && match[1]) {
+                    videoId = match[1];
+                } else {
+                    showError('Invalid YouTube URL');
+                    return;
+                }
+                
+                const qualities = ['maxres', 'sddefault', 'mqdefault', 'default'];
+                let qualityIndex = qualities.indexOf(selectedQuality);
+                
+                function tryLoadThumbnail() {
+                    if (qualityIndex >= qualities.length) {
+                        showError('Could not load thumbnail for this video');
+                        return;
+                    }
+                    
+                    const quality = qualities[qualityIndex];
+                    const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/${quality}.jpg`;
+                    
+                    const img = new Image();
+                    img.onload = function() {
+                        // Check if we got a valid thumbnail (not the default error thumbnail)
+                        if (img.width === 120 && img.height === 90) {
+                            qualityIndex++;
+                            tryLoadThumbnail();
+                            return;
+                        }
+                        
+                        thumbnail.src = thumbnailUrl;
+                        thumbnail.style.display = 'block';
+                        downloadLink.href = thumbnailUrl;
+                        downloadLink.download = `youtube-thumbnail-${videoId}-${quality}.jpg`;
+                        downloadLink.style.display = 'inline-flex';
+                        loader.style.display = 'none';
+                    };
+                    
+                    img.onerror = function() {
+                        qualityIndex++;
+                        tryLoadThumbnail();
+                    };
+                    
+                    img.src = thumbnailUrl;
+                }
+                
+                tryLoadThumbnail();
+            }
+            
+            // Show error message
+            function showError(message) {
+                errorMessage.textContent = message;
+                errorMessage.style.display = 'block';
+                loader.style.display = 'none';
+            }
+            
+            // Download thumbnail function
+            function downloadThumbnail(url, fileName) {
+                // Show a loading message or animation
+                const originalText = downloadLink.innerHTML;
+                downloadLink.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Downloading...';
+                
+                fetch(url)
+                    .then(response => response.blob())
+                    .then(blob => {
+                        // Create a blob URL and link
+                        const blobUrl = window.URL.createObjectURL(blob);
+                        const tempLink = document.createElement('a');
+                        tempLink.href = blobUrl;
+                        tempLink.download = fileName;
+                        document.body.appendChild(tempLink);
+                        
+                        // Trigger click to download
+                        tempLink.click();
+                        
+                        // Clean up
+                        window.URL.revokeObjectURL(blobUrl);
+                        document.body.removeChild(tempLink);
+                        
+                        // Show download complete
+                        downloadLink.innerHTML = originalText;
+                        
+                        // Visual feedback
+                        const feedback = document.createElement('div');
+                        feedback.textContent = 'Download complete!';
+                        feedback.style.position = 'fixed';
+                        feedback.style.bottom = '20px';
+                        feedback.style.left = '50%';
+                        feedback.style.transform = 'translateX(-50%)';
+                        feedback.style.padding = '10px 20px';
+                        feedback.style.borderRadius = '50px';
+                        feedback.style.background = 'var(--success-color)';
+                        feedback.style.color = 'white';
+                        feedback.style.boxShadow = '0 4px 10px rgba(0,0,0,0.2)';
+                        feedback.style.zIndex = '1000';
+                        document.body.appendChild(feedback);
+                        
+                        setTimeout(() => {
+                            feedback.style.opacity = '0';
+                            setTimeout(() => document.body.removeChild(feedback), 300);
+                        }, 2000);
+                    })
+                    .catch(error => {
+                        console.error('Error downloading image:', error);
+                        downloadLink.innerHTML = originalText;
+                        showError('Failed to download image. Try again or right-click and save manually.');
+                    });
+            }
+        });
+    </script>
+
+</body></html>
